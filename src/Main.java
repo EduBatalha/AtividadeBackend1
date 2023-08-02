@@ -10,7 +10,7 @@ public class Main {
         do {
             System.out.println("===== Menu =====");
             System.out.println("1. Cadastrar novo sócio");
-            System.out.println("2. Consultar por documento ou nome");
+            System.out.println("2. Consultar sócio");
             System.out.println("3. Atualizar registro por número de carteirinha");
             System.out.println("4. Excluir registro por número de carteirinha");
             System.out.println("5. Listar registros");
@@ -35,13 +35,22 @@ public class Main {
                 }
                 case 2 -> {
                     System.out.println("===== Consultar Sócio =====");
-                    System.out.print("Digite o documento ou nome do sócio: ");
+                    System.out.print("Digite o documento, nome ou número da carteirinha do sócio: ");
                     scanner.nextLine();
                     String busca = scanner.nextLine();
-                    Socio socioEncontrado = clube.consultarPorDocumento(busca);
-                    if (socioEncontrado == null) {
-                        socioEncontrado = clube.consultarPorNome(busca);
+
+                    Socio socioEncontrado = null;
+
+                    if (Character.isDigit(busca.charAt(0))) {
+                        int numeroCarteirinhaConsulta = Integer.parseInt(busca);
+                        socioEncontrado = clube.consultarPorNumeroCarteirinha(numeroCarteirinhaConsulta);
+                    } else {
+                        socioEncontrado = clube.consultarPorDocumento(busca);
+                        if (socioEncontrado == null) {
+                            socioEncontrado = clube.consultarPorNome(busca);
+                        }
                     }
+
                     if (socioEncontrado != null) {
                         System.out.println("Sócio encontrado:");
                         System.out.println(socioEncontrado);
@@ -49,6 +58,7 @@ public class Main {
                         System.out.println("Sócio não encontrado.");
                     }
                 }
+
                 case 3 -> {
                     System.out.println("===== Atualizar Registro =====");
                     System.out.print("Digite o número da carteirinha do sócio a ser atualizado: ");
