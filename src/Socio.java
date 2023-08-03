@@ -1,10 +1,12 @@
+import java.time.LocalDate;
+
 public class Socio {
     private int numeroCarteirinha;
-    private String dataAssociacao;
+    private LocalDate dataAssociacao;
     private String nome;
     private String documento;
 
-    public Socio(int numeroCarteirinha, String dataAssociacao, String nome, String documento) {
+    public Socio(int numeroCarteirinha, LocalDate dataAssociacao, String nome, String documento) {
         this.numeroCarteirinha = numeroCarteirinha;
         this.dataAssociacao = dataAssociacao;
         this.nome = nome;
@@ -15,7 +17,7 @@ public class Socio {
         return numeroCarteirinha;
     }
 
-    public String getDataAssociacao() {
+    public LocalDate getDataAssociacao() {
         return dataAssociacao;
     }
 
@@ -23,8 +25,16 @@ public class Socio {
         return nome;
     }
 
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
     public String getDocumento() {
         return documento;
+    }
+
+    public void setDocumento(String documento) {
+        this.documento = documento;
     }
 
     @Override
