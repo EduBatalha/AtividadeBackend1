@@ -27,7 +27,7 @@ public class Clube {
         return null;
     }
 
-    public Socio consultarPorNumeroCarteirinha(int numeroCarteirinha) {
+    public Socio consultarPorCarteirinha(int numeroCarteirinha) {
         for (Socio socio : socios) {
             if (socio.getNumeroCarteirinha() == numeroCarteirinha) {
                 return socio;
@@ -67,6 +67,82 @@ public class Clube {
             }
         }
         return false;
+    }
+
+    public void cadastrarNovoSocio(Scanner scanner) {
+        System.out.println("===== Cadastrar Novo Sócio =====");
+        System.out.print("Número da carteirinha: ");
+        int numeroCarteirinha = scanner.nextInt();
+        scanner.nextLine();
+        System.out.print("Data de associação: ");
+        String dataAssociacao = scanner.nextLine();
+        System.out.print("Nome: ");
+        String nome = scanner.nextLine();
+        System.out.print("Documento (RG ou CPF): ");
+        String documento = scanner.nextLine();
+        Socio novoSocio = new Socio(numeroCarteirinha, dataAssociacao, nome, documento);
+        cadastrarSocio(novoSocio);
+    }
+
+    public void consultarSocio(Scanner scanner) {
+        System.out.println("===== Consultar Sócio =====");
+        System.out.print("Digite o documento, nome ou número da carteirinha do sócio: ");
+        String busca = scanner.nextLine();
+
+        Socio socioEncontrado = null;
+
+        if (Character.isDigit(busca.charAt(0))) {
+            int numeroCarteirinhaConsulta = Integer.parseInt(busca);
+            socioEncontrado = consultarPorCarteirinha(numeroCarteirinhaConsulta);
+        } else {
+            socioEncontrado = consultarPorDocumento(busca);
+            if (socioEncontrado == null) {
+                socioEncontrado = consultarPorNome(busca);
+            }
+        }
+
+        if (socioEncontrado != null) {
+            System.out.println("Sócio encontrado:");
+            System.out.println(socioEncontrado);
+        } else {
+            System.out.println("Sócio não encontrado.");
+        }
+    }
+
+    public void atualizarRegistro(Scanner scanner) {
+        System.out.println("===== Atualizar Registro =====");
+        System.out.print("Digite o número da carteirinha do sócio a ser atualizado: ");
+        int numeroCarteirinhaAtualizar = scanner.nextInt();
+        scanner.nextLine();
+        Socio socioAtualizado = consultarPorCarteirinha(numeroCarteirinhaAtualizar);
+        if (socioAtualizado == null) {
+            System.out.println("Sócio não encontrado.");
+        } else {
+            System.out.print("Nova data de associação: ");
+            String novaDataAssociacao = scanner.nextLine();
+            System.out.print("Novo nome: ");
+            String novoNome = scanner.nextLine();
+            System.out.print("Novo documento (RG ou CPF): ");
+            String novoDocumento = scanner.nextLine();
+
+            socioAtualizado = new Socio(numeroCarteirinhaAtualizar, novaDataAssociacao, novoNome, novoDocumento);
+            if (atualizarRegistro(numeroCarteirinhaAtualizar, socioAtualizado)) {
+                System.out.println("Sócio atualizado com sucesso!");
+            } else {
+                System.out.println("Falha ao atualizar o sócio.");
+            }
+        }
+    }
+
+    public void excluirRegistro(Scanner scanner) {
+        System.out.println("===== Excluir Registro =====");
+        System.out.print("Digite o número da carteirinha do sócio a ser excluído: ");
+        int numeroCarteirinhaExcluir = scanner.nextInt();
+        if (excluirRegistro(numeroCarteirinhaExcluir)) {
+            System.out.println("Sócio excluído com sucesso!");
+        } else {
+            System.out.println("Sócio não encontrado ou falha ao excluir.");
+        }
     }
 
     private void carregarDoArquivo() {
