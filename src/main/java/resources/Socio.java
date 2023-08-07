@@ -1,4 +1,7 @@
+package resources;
+
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Socio {
     private int numeroCarteirinha;
@@ -39,10 +42,13 @@ public class Socio {
 
     @Override
     public String toString() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String dataAssociacaoFormatada = dataAssociacao.format(formatter);
         return "Número da carteirinha: " + numeroCarteirinha +
-                ", Data de associação: " + dataAssociacao +
+                ", Data de associação: " + dataAssociacaoFormatada +
                 ", Nome: " + nome +
                 ", Documento: " + documento;
     }
 }
+
 

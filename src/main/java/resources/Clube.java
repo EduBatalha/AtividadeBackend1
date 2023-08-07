@@ -1,25 +1,36 @@
-import java.io.*;
+package resources;
+
+import com.google.gson.GsonBuilder;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Clube {
     private List<Socio> socios;
-    private final String ARQUIVO_SOCIOS = "socios.txt";
-
+    private final String ARQUIVO_SOCIOS = "socios.json";
+    private Gson gson;
     private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private int ultimoNumeroCarteirinha = 0; // Variável para armazenar o último número de carteirinha utilizado
 
     public Clube() {
         this.socios = new ArrayList<>();
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
+                .disableInnerClassSerialization()
+                .setPrettyPrinting()
+                .create();
         carregarDoArquivo();
-    }
-
-    public void cadastrarSocio(Socio socio) {
-        socios.add(socio);
-        salvarNoArquivo();
-        System.out.println("Cadastro efetuado com sucesso!");
+        atualizarUltimoNumeroCarteirinha();
     }
 
     public Socio consultarPorDocumento(String documento) {
@@ -29,6 +40,45 @@ public class Clube {
             }
         }
         return null;
+    }
+
+    public enum TipoDocumento {
+        RG("RG", "##.###.###-#"),
+        CPF("CPF", "###.###.###-##");
+
+        private final String descricao;
+        private final String mascara;
+
+        TipoDocumento(String descricao, String mascara) {
+            this.descricao = descricao;
+            this.mascara = mascara;
+        }
+
+        public String getDescricao() {
+            return descricao;
+        }
+
+        public String getMascara() {
+            return mascara;
+        }
+    }
+
+    private String formatarDocumento(Scanner scanner, TipoDocumento tipo) {
+        System.out.print("Documento (" + tipo.getMascara() + "): ");
+        String documento = scanner.nextLine();
+        StringBuilder documentoFormatado = new StringBuilder();
+
+        int count = 0;
+        for (char c : tipo.getMascara().toCharArray()) {
+            if (c == '#') {
+                documentoFormatado.append(documento.charAt(count));
+                count++;
+            } else {
+                documentoFormatado.append(c);
+            }
+        }
+
+        return documentoFormatado.toString();
     }
 
     public Socio consultarPorCarteirinha(int numeroCarteirinha) {
@@ -73,19 +123,56 @@ public class Clube {
         return false;
     }
 
+    private void atualizarUltimoNumeroCarteirinha() {
+        // Encontrar o maior número de carteirinha já registrado
+        for (Socio socio : socios) {
+            if (socio.getNumeroCarteirinha() > ultimoNumeroCarteirinha) {
+                ultimoNumeroCarteirinha = socio.getNumeroCarteirinha();
+            }
+        }
+    }
+
+    public void cadastrarSocio(Socio socio) {
+        socios.add(socio);
+        // Atualizar o número da última carteirinha utilizada
+        ultimoNumeroCarteirinha = socio.getNumeroCarteirinha();
+        salvarNoArquivo();
+        System.out.println("Cadastro efetuado com sucesso!");
+    }
+
     public void cadastrarNovoSocio(Scanner scanner) {
         System.out.println("===== Cadastrar Novo Sócio =====");
-        System.out.print("Número da carteirinha: ");
-        int numeroCarteirinha = scanner.nextInt();
-        scanner.nextLine();
-        LocalDate dataAssociacao = LocalDate.now(); // Utiliza a data do sistema
+        try {
+            // Incrementar o número da carteirinha antes de criar o novo sócio
+            int numeroCarteirinha = ultimoNumeroCarteirinha + 1;
 
-        System.out.print("Nome: ");
-        String nome = scanner.nextLine();
-        System.out.print("Documento (RG ou CPF): ");
-        String documento = scanner.nextLine();
-        Socio novoSocio = new Socio(numeroCarteirinha, dataAssociacao, nome, documento);
-        cadastrarSocio(novoSocio);
+            System.out.print("Nome: ");
+            String nome = scanner.nextLine();
+
+            // Escolhendo o tipo do documento
+            System.out.println("Escolha o tipo de documento: ");
+            for (TipoDocumento tipo : TipoDocumento.values()) {
+                System.out.println(tipo.ordinal() + ". " + tipo.getDescricao());
+            }
+            int escolha = scanner.nextInt();
+            scanner.nextLine();
+
+            String documento;
+            if (escolha == TipoDocumento.RG.ordinal()) {
+                documento = formatarDocumento(scanner, TipoDocumento.RG);
+            } else {
+                documento = formatarDocumento(scanner, TipoDocumento.CPF);
+            }
+
+            Socio novoSocio = new Socio(numeroCarteirinha, LocalDate.now(), nome, documento);
+            cadastrarSocio(novoSocio);
+        } catch (NumberFormatException e) {
+            System.out.println("Erro ao ler entrada numérica: " + e.getMessage());
+        } catch (DateTimeParseException e) {
+            System.out.println("Erro ao ler data de associação: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Erro ao cadastrar, consulte a numeração de seu documento.");
+        }
     }
 
     public void consultarSocio(Scanner scanner) {
@@ -181,38 +268,22 @@ public class Clube {
     }
 
     private void carregarDoArquivo() {
-        try (Scanner scanner = new Scanner(new File(ARQUIVO_SOCIOS))) {
-            while (scanner.hasNextLine()) {
-                String linha = scanner.nextLine();
-                String[] campos = linha.split(";");
-                int numeroCarteirinha = Integer.parseInt(campos[0]);
-                LocalDate dataAssociacao;
-                try {
-                    dataAssociacao = LocalDate.parse(campos[1], dateFormatter);
-                } catch (Exception e) {
-                    System.out.println("Erro ao ler a data do arquivo socios.txt: " + e.getMessage());
-                    continue;
-                }
-                String nome = campos[2];
-                String documento = campos[3];
-
-                Socio socio = new Socio(numeroCarteirinha, dataAssociacao, nome, documento);
-                socios.add(socio);
+        try (FileReader reader = new FileReader(ARQUIVO_SOCIOS)) {
+            Type listType = new TypeToken<List<Socio>>(){}.getType();
+            List<Socio> listaSocios = gson.fromJson(reader, listType);
+            if (listaSocios != null) {
+                socios = listaSocios;
+            } else {
+                socios = new ArrayList<>();
             }
         } catch (IOException e) {
-            System.out.println("Erro ao ler o arquivo socios.txt: " + e.getMessage());
+            System.out.println("Erro ao ler o arquivo socios.json: " + e.getMessage());
         }
     }
 
     private void salvarNoArquivo() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(ARQUIVO_SOCIOS))) {
-            for (Socio socio : socios) {
-                String dataAssociacao = socio.getDataAssociacao().format(dateFormatter);
-                writer.println(socio.getNumeroCarteirinha() + ";" +
-                        dataAssociacao + ";" +
-                        socio.getNome() + ";" +
-                        socio.getDocumento());
-            }
+        try (FileWriter writer = new FileWriter(ARQUIVO_SOCIOS)) {
+            gson.toJson(socios, writer);
         } catch (IOException e) {
             System.out.println("Erro ao salvar os dados no arquivo: " + e.getMessage());
         }
@@ -227,5 +298,9 @@ public class Clube {
                 System.out.println(socio);
             }
         }
+    }
+
+    public int getTotalSocios() {
+        return socios.size();
     }
 }
