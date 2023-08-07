@@ -3,8 +3,8 @@ import resources.Clube;
 
 public class Main {
     public static void main(String[] args) {
-        Clube clube = new Clube();
         Scanner scanner = new Scanner(System.in);
+        Clube clube = new Clube(scanner);
 
         int opcao;
 
@@ -13,15 +13,17 @@ public class Main {
             opcao = lerOpcao(scanner);
 
             switch (opcao) {
-                case 1 -> clube.cadastrarNovoSocio(scanner);
-                case 2 -> clube.consultarSocio(scanner);
-                case 3 -> clube.atualizarRegistro(scanner);
-                case 4 -> clube.excluirRegistro(scanner);
+                case 1 -> clube.cadastrarNovoSocio();
+                case 2 -> clube.consultarSocio();
+                case 3 -> clube.atualizarRegistro();
+                case 4 -> clube.excluirRegistro();
                 case 5 -> clube.listarSocios();
                 case 6 -> System.out.println("Saindo do sistema...");
                 default -> System.out.println("Opção inválida. Tente novamente.");
             }
         } while (opcao != 6);
+
+        scanner.close();
     }
 
     private static void exibirMenu() {
@@ -37,7 +39,9 @@ public class Main {
     private static int lerOpcao(Scanner scanner) {
         System.out.print("Escolha uma opção: ");
         int opcao = scanner.nextInt();
-        scanner.nextLine(); // Para limpar o buffer de entrada
+        scanner.nextLine(); // Para consumir o caractere de nova linha após ler o inteiro
         return opcao;
     }
 }
+
+
