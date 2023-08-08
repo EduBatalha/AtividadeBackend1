@@ -1,4 +1,4 @@
-package resources;
+package domain;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -50,5 +50,3 @@ public class Socio {
                 ", Documento: " + documento;
     }
 }
-
-

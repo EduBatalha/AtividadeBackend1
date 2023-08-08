@@ -1,15 +1,11 @@
-package resources;
+package presentation;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.Gson;
+import data.JsonReader;
+import data.JsonWriter;
+import domain.Socio;
+
 import com.google.gson.reflect.TypeToken;
-
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -17,23 +13,17 @@ import java.util.Scanner;
 public class Clube {
     private List<Socio> socios;
     private final String ARQUIVO_SOCIOS = "socios.json";
-    private Gson gson;
-    private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private int ultimoNumeroCarteirinha = 0; // Variável para armazenar o último número de carteirinha utilizado
     private Scanner scanner;
-    private ConsultaSocio consultaSocio;
+    private GerenciamentoSocio gerenciamentoSocio;
 
     public Clube(Scanner scanner) {
         this.scanner = scanner;
         this.socios = new ArrayList<>();
-        this.gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
-                .disableInnerClassSerialization()
-                .setPrettyPrinting()
-                .create();
         carregarDoArquivo();
         atualizarUltimoNumeroCarteirinha();
-        this.consultaSocio = new ConsultaSocio(this, scanner);
+        this.gerenciamentoSocio = new GerenciamentoSocio(this, scanner);
     }
 
     public List<Socio> getSocios() {
@@ -78,26 +68,22 @@ public class Clube {
         System.out.println("Cadastro efetuado com sucesso!");
     }
 
-    public void carregarDoArquivo() {
-        try (FileReader reader = new FileReader(ARQUIVO_SOCIOS)) {
-            Type listType = new TypeToken<List<Socio>>(){}.getType();
-            List<Socio> listaSocios = gson.fromJson(reader, listType);
-            if (listaSocios != null) {
-                socios = listaSocios;
-            } else {
-                socios = new ArrayList<>();
-            }
-        } catch (IOException e) {
-            System.out.println("Erro ao ler o arquivo socios.json: " + e.getMessage());
+    private void carregarDoArquivo() {
+        JsonReader jsonReader = new JsonReader();
+        Type listType = new TypeToken<List<Socio>>(){}.getType();
+
+        List<Socio> listaSocios = jsonReader.readFromFile(ARQUIVO_SOCIOS, listType);
+        if (listaSocios != null) {
+            socios = listaSocios;
+        } else {
+            socios = new ArrayList<>();
         }
     }
 
-    public void salvarNoArquivo() {
-        try (FileWriter writer = new FileWriter(ARQUIVO_SOCIOS)) {
-            gson.toJson(socios, writer);
-        } catch (IOException e) {
-            System.out.println("Erro ao salvar os dados no arquivo: " + e.getMessage());
-        }
+
+    private void salvarNoArquivo() {
+        JsonWriter jsonWriter = new JsonWriter();
+        jsonWriter.writeToFile(ARQUIVO_SOCIOS, socios);
     }
 
     public void listarSocios() {
@@ -112,8 +98,8 @@ public class Clube {
     }
 
     public boolean excluirRegistro(int numeroCarteirinhaExcluir) {
-        ConsultaSocio consultaSocio = new ConsultaSocio(this, scanner);
-        Socio socio = consultaSocio.consultarPorCarteirinha(numeroCarteirinhaExcluir);
+        GerenciamentoSocio gerenciamentoSocio = new GerenciamentoSocio(this, scanner);
+        Socio socio = gerenciamentoSocio.consultarPorCarteirinha(numeroCarteirinhaExcluir);
         if (socio != null) {
             socios.remove(socio);
             salvarNoArquivo();
@@ -135,28 +121,23 @@ public class Clube {
         return false;
     }
 
-
     public int getUltimoNumeroCarteirinha() {
         return ultimoNumeroCarteirinha;
     }
 
-    // Métodos de gerenciamento das outras classes
-
     public void cadastrarNovoSocio() {
-        new CadastroSocio(this, scanner).cadastrarNovoSocio();
+        gerenciamentoSocio.cadastrarNovoSocio();
     }
 
     public void consultarSocio() {
-        new ConsultaSocio(this, scanner).consultarSocio();
+        gerenciamentoSocio.consultarSocio();
     }
 
     public void atualizarRegistro() {
-        ConsultaSocio consultaSocio = new ConsultaSocio(this, scanner);
-        new AtualizacaoSocio(this, consultaSocio, scanner).atualizarRegistro();
+        gerenciamentoSocio.atualizarRegistro();
     }
 
     public void excluirRegistro() {
-        new ExclusaoSocio(this, scanner).excluirRegistro();
+        gerenciamentoSocio.excluirRegistro();
     }
 }
-

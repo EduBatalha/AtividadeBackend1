@@ -1,5 +1,5 @@
 import java.util.Scanner;
-import resources.Clube;
+import presentation.Clube;
 
 public class Main {
     public static void main(String[] args) {

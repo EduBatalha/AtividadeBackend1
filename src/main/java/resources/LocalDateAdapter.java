@@ -1,34 +1,20 @@
 package resources;
 
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
+import com.google.gson.*;
+import java.lang.reflect.Type;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
-public class LocalDateAdapter extends TypeAdapter<LocalDate> {
-    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+public class LocalDateAdapter implements JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
 
     @Override
-    public void write(JsonWriter out, LocalDate value) throws IOException {
-        if (value == null) {
-            out.nullValue();
-        } else {
-            out.value(dateFormatter.format(value));
-        }
+    public JsonElement serialize(LocalDate date, Type type, JsonSerializationContext jsonSerializationContext) {
+        return new JsonPrimitive(date.toString());
     }
 
     @Override
-    public LocalDate read(JsonReader in) throws IOException {
-        if (in.peek() == JsonToken.NULL) {
-            in.nextNull();
-            return null;
-        } else {
-            String dateStr = in.nextString();
-            return LocalDate.parse(dateStr, dateFormatter);
-        }
+    public LocalDate deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        return LocalDate.parse(jsonElement.getAsString());
     }
 }
+
 
