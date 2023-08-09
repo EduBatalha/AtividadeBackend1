@@ -2,7 +2,7 @@ package presentation;
 
 import data.JsonReader;
 import data.JsonWriter;
-import domain.Socio;
+import domain.*;
 
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
@@ -17,13 +17,19 @@ public class Clube {
     private int ultimoNumeroCarteirinha = 0; // Variável para armazenar o último número de carteirinha utilizado
     private Scanner scanner;
     private GerenciamentoSocio gerenciamentoSocio;
-
+    private Relatorios relatorios;
+    private GestaoEspacos gestaoEspacos;
+    private ArquivoPessoal arquivoPessoal;
+    private Financeiro financeiro;
     public Clube(Scanner scanner) {
         this.scanner = scanner;
         this.socios = new ArrayList<>();
         carregarDoArquivo();
         atualizarUltimoNumeroCarteirinha();
         this.gerenciamentoSocio = new GerenciamentoSocio(this, scanner);
+        this.financeiro = new Financeiro();
+        arquivoPessoal = new ArquivoPessoal();
+        this.gestaoEspacos = new GestaoEspacos();
     }
 
     public List<Socio> getSocios() {
@@ -97,6 +103,26 @@ public class Clube {
         }
     }
 
+    public Relatorios getRelatorios() {
+        return relatorios;
+    }
+
+    public GerenciamentoSocio getGerenciamentoSocio() {
+        return gerenciamentoSocio;
+    }
+
+    public GestaoEspacos getGestaoEspacos() {
+        return gestaoEspacos;
+    }
+
+    public ArquivoPessoal getArquivoPessoal() {
+        return arquivoPessoal;
+    }
+
+    public Financeiro getFinanceiro() {
+        return financeiro;
+    }
+
     public boolean excluirRegistro(int numeroCarteirinhaExcluir) {
         GerenciamentoSocio gerenciamentoSocio = new GerenciamentoSocio(this, scanner);
         Socio socio = gerenciamentoSocio.consultarPorCarteirinha(numeroCarteirinhaExcluir);
@@ -123,21 +149,5 @@ public class Clube {
 
     public int getUltimoNumeroCarteirinha() {
         return ultimoNumeroCarteirinha;
-    }
-
-    public void cadastrarNovoSocio() {
-        gerenciamentoSocio.cadastrarNovoSocio();
-    }
-
-    public void consultarSocio() {
-        gerenciamentoSocio.consultarSocio();
-    }
-
-    public void atualizarRegistro() {
-        gerenciamentoSocio.atualizarRegistro();
-    }
-
-    public void excluirRegistro() {
-        gerenciamentoSocio.excluirRegistro();
     }
 }
