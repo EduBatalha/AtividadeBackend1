@@ -22,7 +22,6 @@ public class Espaco {
         this.registroUsoPorSocio = new HashMap<>();
     }
 
-
     public String getNome() {
         return nome;
     }

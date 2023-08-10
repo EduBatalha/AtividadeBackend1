@@ -6,11 +6,8 @@ import data.JsonReader;
 import presentation.Clube;
 
 import java.lang.reflect.Type;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
 import java.util.*;
 
 public class ArquivoPessoal {
@@ -21,7 +18,7 @@ public class ArquivoPessoal {
     private Map<Socio, Map<Espaco, Map<LocalDateTime, Integer>>> historicoUsoPorSocio;
 
     public ArquivoPessoal() {
-        gestaoEspacos = new GestaoEspacos();
+        this.gestaoEspacos = gestaoEspacos;
         jsonWriter = new JsonWriter();
         jsonReader = new JsonReader();
         historicoUsoPorSocio = new HashMap<>();
@@ -59,7 +56,8 @@ public class ArquivoPessoal {
         }
     }
 
-    private Espaco selecionarEspaco(Scanner scanner, GestaoEspacos gestaoEspacos) {
+    private Espaco selecionarEspaco(Scanner scanner, GestaoEspacos gestaoEspacos)
+    {
         System.out.println("===== Espaços Disponíveis =====");
 
         List<Espaco> espacos = gestaoEspacos.getEspacos();
@@ -79,6 +77,8 @@ public class ArquivoPessoal {
             return null;
         }
     }
+
+
 
     public void lerRegistrosPorNumeroCarteirinha(int numeroCarteirinha) {
         Type type = new TypeToken<List<Map<String, Object>>>() {}.getType();

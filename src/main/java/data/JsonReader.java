@@ -2,7 +2,6 @@ package data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import resources.LocalDateAdapter;
 import resources.LocalDateTimeAdapter;
 
@@ -27,10 +26,9 @@ public class JsonReader {
     public <T> List<T> readFromFile(String fileName, Type type) {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             return gson.fromJson(reader, type);
-        } catch (IOException | JsonSyntaxException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 }
-
