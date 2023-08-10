@@ -1,22 +1,30 @@
 package domain;
 
+import com.google.gson.reflect.TypeToken;
 import data.JsonWriter;
+import data.JsonReader;
 import presentation.Clube;
 
+import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.util.*;
 
 public class ArquivoPessoal {
-    private Map<Socio, Map<Espaco, Map<LocalDateTime, Integer>>> historicoUsoPorSocio;
-    private JsonWriter jsonWriter; // Adicione esta variável
+    private JsonWriter jsonWriter;
+    private JsonReader jsonReader;
+    private GestaoEspacos gestaoEspacos;
     private static final String JSON_FILENAME = "registros.json";
+    private Map<Socio, Map<Espaco, Map<LocalDateTime, Integer>>> historicoUsoPorSocio;
 
     public ArquivoPessoal() {
+        gestaoEspacos = new GestaoEspacos();
+        jsonWriter = new JsonWriter();
+        jsonReader = new JsonReader();
         historicoUsoPorSocio = new HashMap<>();
-        jsonWriter = new JsonWriter(); // Inicialize o JsonWriter
     }
 
     public void exibirMenuRegistrarEntradaSaida(Scanner scanner, Clube clube) {
@@ -40,13 +48,9 @@ public class ArquivoPessoal {
                     Espaco espaco = selecionarEspaco(scanner, clube.getGestaoEspacos());
                     if (espaco != null) {
                         registrarEntradaSaida(socio, espaco, true); // true representa entrada
-                        System.out.println("Entrada registrada com sucesso!");
                     }
                 }
-                case 2 -> {
-                    registrarEntradaSaida(socio, null, false); // false representa saída
-                    System.out.println("Saída registrada com sucesso!");
-                }
+                case 2 -> registrarEntradaSaida(socio, null, false); // false representa saída
                 case 3 -> lerRegistrosPorNumeroCarteirinha(numeroCarteirinha);
                 default -> System.out.println("Opção inválida.");
             }
@@ -54,74 +58,6 @@ public class ArquivoPessoal {
             System.out.println("Sócio não encontrado.");
         }
     }
-
-
-    private void registrarEntradaSaida(Socio socio, Espaco espaco, boolean isEntrada) {
-        LocalDateTime horarioEntrada = LocalDateTime.now();
-        LocalDateTime horarioSaida = horarioEntrada.plusHours(2); // Supondo que a permanência seja de 2 horas
-
-        if (isEntrada) {
-            registrarEntrada(socio, espaco, horarioEntrada, horarioSaida);
-        } else {
-            registrarSaida(socio, horarioEntrada, horarioSaida);
-        }
-    }
-
-    private void registrarEntrada(Socio socio, Espaco espaco, LocalDateTime horarioEntrada, LocalDateTime horarioSaida) {
-        if (historicoUsoPorSocio.containsKey(socio) && historicoUsoPorSocio.get(socio).containsKey(espaco)) {
-            Map<LocalDateTime, Integer> registros = historicoUsoPorSocio.get(socio).get(espaco);
-            if (!registros.isEmpty()) {
-                LocalDateTime ultimoHorario = registros.keySet().stream().max(LocalDateTime::compareTo).get();
-                if (registros.get(ultimoHorario) == -1) {
-                    System.out.println("Não é possível registrar entrada. O sócio já está dentro do espaço.");
-                    return;
-                }
-            }
-        }
-
-        historicoUsoPorSocio.putIfAbsent(socio, new HashMap<>());
-        historicoUsoPorSocio.get(socio).putIfAbsent(espaco, new HashMap<>());
-
-        historicoUsoPorSocio.get(socio).get(espaco).put(horarioEntrada, -1); // -1 representa entrada
-        historicoUsoPorSocio.get(socio).get(espaco).put(horarioSaida, 1);     // 1 representa saída
-
-        // Registra no arquivo JSON
-        Map<String, Object> registro = new HashMap<>();
-        registro.put("nomeSocio", socio.getNome());
-        registro.put("numeroCarteirinha", socio.getNumeroCarteirinha());
-        registro.put("espaco", espaco.getNome());
-        registro.put("horarioEntrada", horarioEntrada.toString());
-        registro.put("horarioSaida", horarioSaida.toString());
-        jsonWriter.appendToJSONFile(JSON_FILENAME, registro);
-    }
-
-    private void registrarSaida(Socio socio, LocalDateTime horarioEntrada, LocalDateTime horarioSaida) {
-        if (historicoUsoPorSocio.containsKey(socio)) {
-            for (Espaco espaco : historicoUsoPorSocio.get(socio).keySet()) {
-                Map<LocalDateTime, Integer> registros = historicoUsoPorSocio.get(socio).get(espaco);
-                if (!registros.isEmpty()) {
-                    LocalDateTime ultimoHorario = registros.keySet().stream().max(LocalDateTime::compareTo).get();
-                    if (registros.get(ultimoHorario) == -1) {
-                        historicoUsoPorSocio.get(socio).get(espaco).put(horarioSaida, 1); // 1 representa saída
-
-                        // Registra saída no arquivo JSON
-                        Map<String, Object> registro = new HashMap<>();
-                        registro.put("nomeSocio", socio.getNome());
-                        registro.put("numeroCarteirinha", socio.getNumeroCarteirinha());
-                        registro.put("espaco", espaco.getNome());
-                        registro.put("horarioEntrada", horarioEntrada.toString());
-                        registro.put("horarioSaida", horarioSaida.toString());
-                        jsonWriter.appendToJSONFile(JSON_FILENAME, registro);
-
-                        break; // Registrar saída apenas no último espaço onde entrou
-                    }
-                }
-            }
-        } else {
-            System.out.println("Nenhum histórico de uso encontrado para o sócio.");
-        }
-    }
-
 
     private Espaco selecionarEspaco(Scanner scanner, GestaoEspacos gestaoEspacos) {
         System.out.println("===== Espaços Disponíveis =====");
@@ -145,36 +81,111 @@ public class ArquivoPessoal {
     }
 
     public void lerRegistrosPorNumeroCarteirinha(int numeroCarteirinha) {
-        Socio socio = null;
-        for (Socio s : historicoUsoPorSocio.keySet()) {
-            if (s.getNumeroCarteirinha() == numeroCarteirinha) {
-                socio = s;
-                break;
-            }
-        }
+        Type type = new TypeToken<List<Map<String, Object>>>() {}.getType();
+        List<Map<String, Object>> registros = jsonReader.readFromFile("registros.json", type);
 
-        if (socio != null) {
-            System.out.println("===== Registros de Entrada e Saída para o Sócio " + socio.getNome() + " =====");
-            Map<Espaco, Map<LocalDateTime, Integer>> registros = historicoUsoPorSocio.get(socio);
-            for (Espaco espaco : registros.keySet()) {
-                System.out.println("- Espaço: " + espaco.getNome());
-                Map<LocalDateTime, Integer> horarios = registros.get(espaco);
-                for (Map.Entry<LocalDateTime, Integer> entry : horarios.entrySet()) {
-                    String acao = entry.getValue() == -1 ? "Entrada" : "Saída";
-                    LocalDateTime horario = entry.getKey();
-                    System.out.println("  - " + acao + " às " + horario);
+        if (registros != null) {
+            boolean foundSocio = false;
+
+            for (Map<String, Object> registro : registros) {
+                Double carteirinha = (Double) registro.get("numeroCarteirinha");
+
+                if (carteirinha != null && carteirinha.intValue() == numeroCarteirinha) {
+                    foundSocio = true;
+
+                    String nomeSocio = (String) registro.get("nomeSocio");
+                    System.out.println("===== Registros de Entrada e Saída para o Sócio " + nomeSocio + " =====");
+
+                    String espaco = (String) registro.get("espaco");
+                    System.out.println("- Espaço: " + espaco);
+
+                    String horarioEntrada = (String) registro.get("horarioEntrada");
+                    System.out.println("  - Entrada às " + horarioEntrada);
+
+                    String horarioSaida = (String) registro.get("horarioSaida");
+                    if (horarioSaida != null) {
+                        System.out.println("  - Saída às " + horarioSaida);
+                    }
                 }
             }
+
+            if (!foundSocio) {
+                System.out.println("Nenhum sócio encontrado com o número de carteirinha " + numeroCarteirinha);
+            }
         } else {
-            System.out.println("Nenhum sócio encontrado com o número de carteirinha " + numeroCarteirinha);
+            System.out.println("Erro ao ler registros do arquivo JSON.");
         }
     }
 
-    public Map<Espaco, Map<LocalDateTime, Integer>> getHistoricoPorEspacoPorSocio(Socio socio) {
-        return historicoUsoPorSocio.getOrDefault(socio, new HashMap<>());
+    private void registrarEntradaSaida(Socio socio, Espaco espaco, boolean isEntrada) {
+        if (isEntrada) {
+            registrarEntrada(socio, espaco);
+        } else {
+            registrarSaida(socio.getNumeroCarteirinha());
+        }
     }
 
-    public Map<Socio, Map<Espaco, Map<LocalDateTime, Integer>>> getHistoricoUsoPorSocio() {
-        return historicoUsoPorSocio;
+    private void registrarEntrada(Socio socio, Espaco espaco) {
+        LocalDateTime horarioEntrada = LocalDateTime.now();
+
+        if (!historicoUsoPorSocio.containsKey(socio)) {
+            historicoUsoPorSocio.put(socio, new HashMap<>());
+        }
+
+        Map<Espaco, Map<LocalDateTime, Integer>> historicoPorEspaco = historicoUsoPorSocio.get(socio);
+        if (!historicoPorEspaco.containsKey(espaco)) {
+            historicoPorEspaco.put(espaco, new HashMap<>());
+        }
+
+        Map<LocalDateTime, Integer> registros = historicoPorEspaco.get(espaco);
+
+        if (!registros.isEmpty() && registros.values().stream().anyMatch(h -> h == -1)) {
+            System.out.println("Não é possível registrar entrada. O sócio já está dentro do espaço.");
+            return;
+        }
+
+        registros.put(horarioEntrada, -1); // -1 representa entrada
+
+        System.out.println("Entrada registrada com sucesso!");
+
+        // Registra no arquivo JSON
+        Map<String, Object> registro = new HashMap<>();
+        registro.put("nomeSocio", socio.getNome());
+        registro.put("numeroCarteirinha", socio.getNumeroCarteirinha());
+        registro.put("espaco", espaco.getNome()); // Alterado para nome do espaço
+        registro.put("horarioEntrada", horarioEntrada.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS")));
+        registro.put("horarioSaida", null); // Ainda não há horário de saída
+
+        jsonWriter.appendToJSONFile(JSON_FILENAME, registro); // Usar appendToJSONFile para adicionar o novo registro
+    }
+
+    private void registrarSaida(int numeroCarteirinha) {
+        Type type = new TypeToken<List<Map<String, Object>>>() {}.getType();
+        List<Map<String, Object>> registrosExistentes = jsonReader.readFromFile(JSON_FILENAME, type);
+
+        if (registrosExistentes != null) {
+            boolean foundMatchingEntry = false;
+
+            for (Map<String, Object> registro : registrosExistentes) {
+                int registroNumeroCarteirinha = ((Double) registro.get("numeroCarteirinha")).intValue();
+                if (registroNumeroCarteirinha == numeroCarteirinha &&
+                        registro.get("horarioSaida") == null) {
+                    // Atualiza o horário de saída
+                    registro.put("horarioSaida", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS")));
+
+                    foundMatchingEntry = true;
+                    break;
+                }
+            }
+
+            if (foundMatchingEntry) {
+                jsonWriter.writeToFile(JSON_FILENAME, registrosExistentes);
+                System.out.println("Saída registrada com sucesso!");
+            } else {
+                System.out.println("Registro de entrada correspondente não encontrado para registrar a saída.");
+            }
+        } else {
+            System.out.println("Erro ao ler registros existentes no arquivo JSON.");
+        }
     }
 }
