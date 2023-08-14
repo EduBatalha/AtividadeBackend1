@@ -2,8 +2,8 @@ package data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import resources.LocalDateAdapter;
-import resources.LocalDateTimeAdapter;
+import data.resources.LocalDateAdapter;
+import data.resources.LocalDateTimeAdapter;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

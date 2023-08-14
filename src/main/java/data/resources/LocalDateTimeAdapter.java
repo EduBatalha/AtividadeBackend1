@@ -1,4 +1,4 @@
-package resources;
+package data.resources;
 
 import com.google.gson.*;
 

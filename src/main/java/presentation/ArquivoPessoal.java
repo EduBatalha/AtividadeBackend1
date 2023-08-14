@@ -1,8 +1,11 @@
-package domain;
+package presentation;
 
 import com.google.gson.reflect.TypeToken;
 import data.JsonWriter;
 import data.JsonReader;
+import domain.Espaco;
+import domain.GestaoEspacos;
+import domain.Socio;
 import presentation.Clube;
 
 import java.lang.reflect.Type;
@@ -77,8 +80,6 @@ public class ArquivoPessoal {
             return null;
         }
     }
-
-
 
     public void lerRegistrosPorNumeroCarteirinha(int numeroCarteirinha) {
         Type type = new TypeToken<List<Map<String, Object>>>() {}.getType();

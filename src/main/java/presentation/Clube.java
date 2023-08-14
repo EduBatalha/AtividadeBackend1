@@ -36,29 +36,7 @@ public class Clube {
         return socios;
     }
 
-    public enum TipoDocumento {
-        RG("RG", "##.###.###-#"),
-        CPF("CPF", "###.###.###-##");
-
-        private final String descricao;
-        private final String mascara;
-
-        TipoDocumento(String descricao, String mascara) {
-            this.descricao = descricao;
-            this.mascara = mascara;
-        }
-
-        public String getDescricao() {
-            return descricao;
-        }
-
-        public String getMascara() {
-            return mascara;
-        }
-    }
-
     private void atualizarUltimoNumeroCarteirinha() {
-        // Encontrar o maior número de carteirinha já registrado
         for (Socio socio : socios) {
             if (socio.getNumeroCarteirinha() > ultimoNumeroCarteirinha) {
                 ultimoNumeroCarteirinha = socio.getNumeroCarteirinha();
@@ -68,7 +46,6 @@ public class Clube {
 
     public void cadastrarSocio(Socio socio) {
         socios.add(socio);
-        // Atualizar o número da última carteirinha utilizada
         ultimoNumeroCarteirinha = socio.getNumeroCarteirinha();
         salvarNoArquivo();
         System.out.println("Cadastro efetuado com sucesso!");
@@ -85,7 +62,6 @@ public class Clube {
             socios = new ArrayList<>();
         }
     }
-
 
     private void salvarNoArquivo() {
         JsonWriter jsonWriter = new JsonWriter();
@@ -149,5 +125,26 @@ public class Clube {
 
     public int getUltimoNumeroCarteirinha() {
         return ultimoNumeroCarteirinha;
+    }
+
+    public enum TipoDocumento {
+        RG("RG", "##.###.###-#"),
+        CPF("CPF", "###.###.###-##");
+
+        private final String descricao;
+        private final String mascara;
+
+        TipoDocumento(String descricao, String mascara) {
+            this.descricao = descricao;
+            this.mascara = mascara;
+        }
+
+        public String getDescricao() {
+            return descricao;
+        }
+
+        public String getMascara() {
+            return mascara;
+        }
     }
 }

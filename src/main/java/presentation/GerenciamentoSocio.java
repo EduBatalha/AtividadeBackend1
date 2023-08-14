@@ -23,6 +23,16 @@ public class GerenciamentoSocio {
             System.out.print("Nome: ");
             String nome = scanner.nextLine();
 
+            if (nome == null || nome.trim().isEmpty() || nome.length() < 3) {
+                System.out.println("Erro: O nome deve conter pelo menos 3 letras.");
+                return;
+            }
+
+            if (!nome.matches("^[A-Za-zÀ-ÖØ-öø-ÿ ]+$")) {
+                System.out.println("Erro: Utilize apenas letras no nome.");
+                return;
+            }
+
             // Escolhendo o tipo do documento
             System.out.println("Escolha o tipo de documento: ");
             for (Clube.TipoDocumento tipo : Clube.TipoDocumento.values()) {
@@ -38,6 +48,11 @@ public class GerenciamentoSocio {
                 documento = formatarDocumento(scanner, Clube.TipoDocumento.CPF.getMascara());
             }
 
+            if (documento == null) {
+                System.out.println("Erro: Utilize apenas números.");
+                return;
+            }
+
             Socio novoSocio = new Socio(numeroCarteirinha, LocalDate.now(), nome, documento);
             clube.cadastrarSocio(novoSocio);
         } catch (NumberFormatException e) {
@@ -49,14 +64,25 @@ public class GerenciamentoSocio {
 
     private String formatarDocumento(Scanner scanner, String mascara) {
         System.out.print("Documento (" + mascara + "): ");
-        String documento = scanner.nextLine();
-        StringBuilder documentoFormatado = new StringBuilder();
+        String input = scanner.nextLine();
 
+        // Remove tudo exceto os números do input
+        String documentoNumerico = input.replaceAll("[^0-9]", "");
+
+        if (documentoNumerico.length() < mascara.replaceAll("[^#]", "").length()) {
+            return null; // Número de dígitos insuficiente
+        }
+
+        StringBuilder documentoFormatado = new StringBuilder();
         int count = 0;
         for (char c : mascara.toCharArray()) {
             if (c == '#') {
-                documentoFormatado.append(documento.charAt(count));
-                count++;
+                if (count < documentoNumerico.length()) {
+                    documentoFormatado.append(documentoNumerico.charAt(count));
+                    count++;
+                } else {
+                    documentoFormatado.append(' '); // Adiciona espaço vazio para preencher a máscara
+                }
             } else {
                 documentoFormatado.append(c);
             }
@@ -102,8 +128,6 @@ public class GerenciamentoSocio {
             System.out.println("Cadastro não encontrado.");
         }
     }
-
-
 
 
     public Socio consultarPorCarteirinha(int numeroCarteirinha) {
@@ -175,4 +199,5 @@ public class GerenciamentoSocio {
             System.out.println("Falha ao atualizar o sócio.");
         }
     }
+
 }
