@@ -1,10 +1,12 @@
-package presentation;
+package application;
 
-import data.JsonReader;
-import data.JsonWriter;
+import infrastructure.JsonReader;
+import infrastructure.JsonWriter;
 import domain.*;
 
 import com.google.gson.reflect.TypeToken;
+import infrastructure.Socio;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package domain;
+package infrastructure;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

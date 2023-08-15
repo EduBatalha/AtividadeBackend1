@@ -1,6 +1,6 @@
-package presentation;
+package application;
 
-import domain.Socio;
+import infrastructure.Socio;
 
 import java.time.LocalDate;
 import java.util.Scanner;

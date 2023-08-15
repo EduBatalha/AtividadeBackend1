@@ -1,12 +1,11 @@
-package presentation;
+package application;
 
 import com.google.gson.reflect.TypeToken;
-import data.JsonWriter;
-import data.JsonReader;
-import domain.Espaco;
+import infrastructure.JsonWriter;
+import infrastructure.JsonReader;
+import infrastructure.Espaco;
 import domain.GestaoEspacos;
-import domain.Socio;
-import presentation.Clube;
+import infrastructure.Socio;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;

@@ -1,9 +1,11 @@
 package domain;
 
 import com.google.gson.reflect.TypeToken;
-import data.JsonReader;
-import presentation.ArquivoPessoal;
-import presentation.Clube;
+import infrastructure.Espaco;
+import infrastructure.JsonReader;
+import application.ArquivoPessoal;
+import application.Clube;
+import infrastructure.Socio;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

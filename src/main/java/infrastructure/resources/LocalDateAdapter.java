@@ -1,4 +1,4 @@
-package data.resources;
+package infrastructure.resources;
 
 import com.google.gson.*;
 import java.lang.reflect.Type;

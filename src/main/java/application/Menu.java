@@ -1,6 +1,6 @@
-package presentation;
+package application;
 
-import domain.Espaco;
+import infrastructure.Espaco;
 import domain.Financeiro;
 import domain.GestaoEspacos;
 

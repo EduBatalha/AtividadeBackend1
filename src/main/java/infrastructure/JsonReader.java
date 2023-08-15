@@ -1,9 +1,9 @@
-    package data;
+    package infrastructure;
 
     import com.google.gson.Gson;
     import com.google.gson.GsonBuilder;
-    import data.resources.LocalDateAdapter;
-    import data.resources.LocalDateTimeAdapter;
+    import infrastructure.resources.LocalDateAdapter;
+    import infrastructure.resources.LocalDateTimeAdapter;
 
     import java.io.BufferedReader;
     import java.io.FileReader;

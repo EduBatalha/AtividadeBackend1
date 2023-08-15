@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Scanner;
 import com.google.gson.reflect.TypeToken;
 
-import data.JsonReader;
-import data.JsonWriter;
+import infrastructure.Espaco;
+import infrastructure.JsonReader;
+import infrastructure.JsonWriter;
 
 public class GestaoEspacos {
     private List<Espaco> espacos;
