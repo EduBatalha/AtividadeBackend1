@@ -1,7 +1,10 @@
 package domain;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Socio {
     private int numeroCarteirinha;
@@ -9,12 +12,14 @@ public class Socio {
     private String nome;
     private String documento;
 
+
     public Socio(int numeroCarteirinha, LocalDate dataAssociacao, String nome, String documento) {
         this.numeroCarteirinha = numeroCarteirinha;
         this.dataAssociacao = dataAssociacao;
         this.nome = nome;
         this.documento = documento;
     }
+
 
     public int getNumeroCarteirinha() {
         return numeroCarteirinha;

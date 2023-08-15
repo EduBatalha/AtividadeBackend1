@@ -16,20 +16,21 @@ public class GerenciamentoSocio {
 
     public void cadastrarNovoSocio() {
         System.out.println("===== Cadastrar Novo Sócio =====");
+
         try {
             // Incrementar o número da carteirinha antes de criar o novo sócio
             int numeroCarteirinha = clube.getUltimoNumeroCarteirinha() + 1;
 
             System.out.print("Nome: ");
-            String nome = scanner.nextLine();
+            String nome = scanner.nextLine().trim();
 
-            if (nome == null || nome.trim().isEmpty() || nome.length() < 3) {
+            if (nome.isEmpty() || nome.length() < 3) {
                 System.out.println("Erro: O nome deve conter pelo menos 3 letras.");
                 return;
             }
 
             if (!nome.matches("^[A-Za-zÀ-ÖØ-öø-ÿ ]+$")) {
-                System.out.println("Erro: Utilize apenas letras no nome.");
+                System.out.println("Erro: Utilize apenas letras e espaços no nome.");
                 return;
             }
 
@@ -44,17 +45,20 @@ public class GerenciamentoSocio {
             String documento;
             if (escolha == Clube.TipoDocumento.RG.ordinal()) {
                 documento = formatarDocumento(scanner, Clube.TipoDocumento.RG.getMascara());
-            } else {
+            } else if (escolha == Clube.TipoDocumento.CPF.ordinal()) {
                 documento = formatarDocumento(scanner, Clube.TipoDocumento.CPF.getMascara());
+            } else {
+                System.out.println("Erro: Escolha inválida de tipo de documento.");
+                return;
             }
 
             if (documento == null) {
-                System.out.println("Erro: Utilize apenas números.");
-                return;
+                return; // O método formatarDocumento já exibiu os erros
             }
 
             Socio novoSocio = new Socio(numeroCarteirinha, LocalDate.now(), nome, documento);
             clube.cadastrarSocio(novoSocio);
+            System.out.println("Cadastro efetuado com sucesso!");
         } catch (NumberFormatException e) {
             System.out.println("Erro ao ler entrada numérica: " + e.getMessage());
         } catch (Exception e) {
@@ -64,13 +68,14 @@ public class GerenciamentoSocio {
 
     private String formatarDocumento(Scanner scanner, String mascara) {
         System.out.print("Documento (" + mascara + "): ");
-        String input = scanner.nextLine();
+        String input = scanner.nextLine().trim();
 
         // Remove tudo exceto os números do input
         String documentoNumerico = input.replaceAll("[^0-9]", "");
 
-        if (documentoNumerico.length() < mascara.replaceAll("[^#]", "").length()) {
-            return null; // Número de dígitos insuficiente
+        if (documentoNumerico.length() != mascara.replaceAll("[^#]", "").length()) {
+            System.out.println("Erro: Registro incorreto, verifique sua documentação.");
+            return null;
         }
 
         StringBuilder documentoFormatado = new StringBuilder();
@@ -80,8 +85,6 @@ public class GerenciamentoSocio {
                 if (count < documentoNumerico.length()) {
                     documentoFormatado.append(documentoNumerico.charAt(count));
                     count++;
-                } else {
-                    documentoFormatado.append(' '); // Adiciona espaço vazio para preencher a máscara
                 }
             } else {
                 documentoFormatado.append(c);
@@ -199,5 +202,4 @@ public class GerenciamentoSocio {
             System.out.println("Falha ao atualizar o sócio.");
         }
     }
-
 }
