@@ -179,7 +179,7 @@ public class ArquivoPessoal {
             }
 
             if (foundMatchingEntry) {
-                jsonWriter.writeToFile(JSON_FILENAME, registrosExistentes);
+                jsonWriter.writeToFile(JSON_FILENAME, (Map<Integer, Socio>) registrosExistentes);
                 System.out.println("Saída registrada com sucesso!");
             } else {
                 System.out.println("Registro de entrada correspondente não encontrado para registrar a saída.");

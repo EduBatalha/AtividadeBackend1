@@ -53,7 +53,7 @@ public class Financeiro {
     }
 
     private Socio obterSocioPorNome(String nomeSocio) {
-        return clube.getSocios().stream()
+        return clube.getSocios().values().stream()  // Obtém os valores (Socios) do mapa
                 .filter(socio -> socio.getNome().equals(nomeSocio))
                 .findFirst()
                 .orElse(null);
@@ -147,7 +147,7 @@ public class Financeiro {
 
     public void gerarRelatorioTempoUsoPorSocio() {
         System.out.println("===== Relatório de Tempo de Uso por Sócio =====");
-        List<Socio> socios = clube.getSocios();
+        List<Socio> socios = (List<Socio>) clube.getSocios();
 
         Map<Espaco.Categoria, Map<Socio, Long>> tempoUsoPorCategoria = calcularTempoUsoPorCategoria();
 

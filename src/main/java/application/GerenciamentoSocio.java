@@ -100,14 +100,7 @@ public class GerenciamentoSocio {
         int numeroCarteirinhaAtualizar = scanner.nextInt();
         scanner.nextLine();
 
-        Socio socioAtualizar = null;
-
-        for (Socio socio : clube.getSocios()) {
-            if (socio.getNumeroCarteirinha() == numeroCarteirinhaAtualizar) {
-                socioAtualizar = socio;
-                break;
-            }
-        }
+        Socio socioAtualizar = clube.getSocios().get(numeroCarteirinhaAtualizar);
 
         if (socioAtualizar == null) {
             System.out.println("Sócio não encontrado.");
@@ -133,13 +126,9 @@ public class GerenciamentoSocio {
     }
 
     public Socio consultarPorCarteirinha(int numeroCarteirinha) {
-        for (Socio socio : clube.getSocios()) {
-            if (socio.getNumeroCarteirinha() == numeroCarteirinha) {
-                return socio;
-            }
-        }
-        return null;
+        return clube.getSocios().get(numeroCarteirinha);
     }
+
 
     public boolean excluirRegistro() {
         System.out.println("===== Excluir Registro =====");
@@ -172,32 +161,67 @@ public class GerenciamentoSocio {
 
         switch (opcao) {
             case 1:
-                System.out.print("Novo nome: ");
-                String novoNome = scanner.nextLine();
-                socioAtualizado.setNome(novoNome);
+                atualizarNome(socioAtualizado);
                 break;
             case 2:
-                System.out.print("Novo documento (RG ou CPF): ");
-                String novoDocumento = scanner.nextLine();
-                socioAtualizado.setDocumento(novoDocumento);
+                atualizarDocumento(socioAtualizado);
                 break;
             case 3:
-                System.out.print("Novo nome: ");
-                novoNome = scanner.nextLine();
-                System.out.print("Novo documento (RG ou CPF): ");
-                novoDocumento = scanner.nextLine();
-                socioAtualizado.setNome(novoNome);
-                socioAtualizado.setDocumento(novoDocumento);
+                atualizarNome(socioAtualizado);
+                atualizarDocumento(socioAtualizado);
                 break;
             default:
                 System.out.println("Opção inválida.");
-                return;
         }
+    }
 
-        if (clube.atualizarRegistro(socio, socioAtualizado)) {
-            System.out.println("Sócio atualizado com sucesso!");
-        } else {
-            System.out.println("Falha ao atualizar o sócio.");
+    private void atualizarNome(Socio socio) {
+        boolean nomeAtualizado = false;
+
+        while (!nomeAtualizado) {
+            System.out.print("Novo nome: ");
+            String novoNome = scanner.nextLine().trim();
+
+            if (novoNome.matches("^[A-Za-zÀ-ÖØ-öø-ÿ ]+$")) {
+                socio.setNome(novoNome);
+                nomeAtualizado = true;
+            } else {
+                System.out.println("Erro: Utilize apenas letras e espaços no nome.");
+            }
+        }
+    }
+
+    private void atualizarDocumento(Socio socio) {
+        boolean documentoAtualizado = false;
+        while (!documentoAtualizado) {
+            System.out.println("Escolha o tipo de documento:");
+            System.out.println("1 - RG");
+            System.out.println("2 - CPF");
+            System.out.print("Opção: ");
+            int escolhaDocumento;
+            try {
+                escolhaDocumento = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: Insira uma opção válida.");
+                continue;
+            }
+
+            String novoDocumento = null;
+            if (escolhaDocumento == 1) {
+                novoDocumento = formatarDocumento(scanner, Clube.TipoDocumento.RG.getMascara());
+            } else if (escolhaDocumento == 2) {
+                novoDocumento = formatarDocumento(scanner, Clube.TipoDocumento.CPF.getMascara());
+            } else {
+                System.out.println("Opção inválida.");
+                continue;
+            }
+
+            if (novoDocumento != null) {
+                socio.setDocumento(novoDocumento);
+                documentoAtualizado = true;
+            } else {
+                System.out.println("Erro ao atualizar documento. Verifique a formatação e tente novamente.");
+            }
         }
     }
 }

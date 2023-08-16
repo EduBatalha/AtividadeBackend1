@@ -8,23 +8,20 @@ import com.google.gson.reflect.TypeToken;
 import infrastructure.Socio;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Clube {
-    private List<Socio> socios;
+    private Map<Integer, Socio> socios;  // Usando HashMap para mapear número da carteirinha para Socio
     private final String ARQUIVO_SOCIOS = "socios.json";
-
-    private int ultimoNumeroCarteirinha = 0; // Variável para armazenar o último número de carteirinha utilizado
+    private int ultimoNumeroCarteirinha = 0;
     private Scanner scanner;
     private GerenciamentoSocio gerenciamentoSocio;
     private Financeiro financeiro;
     private GestaoEspacos gestaoEspacos;
     private ArquivoPessoal arquivoPessoal;
+
     public Clube(Scanner scanner) {
         this.scanner = scanner;
-        this.socios = new ArrayList<>();
         carregarDoArquivo();
         atualizarUltimoNumeroCarteirinha();
         this.gerenciamentoSocio = new GerenciamentoSocio(this, scanner);
@@ -33,12 +30,12 @@ public class Clube {
         this.financeiro = new Financeiro(arquivoPessoal, gestaoEspacos, this);
     }
 
-    public List<Socio> getSocios() {
+    public Map<Integer, Socio> getSocios() {
         return socios;
     }
 
     private void atualizarUltimoNumeroCarteirinha() {
-        for (Socio socio : socios) {
+        for (Socio socio : socios.values()) {
             if (socio.getNumeroCarteirinha() > ultimoNumeroCarteirinha) {
                 ultimoNumeroCarteirinha = socio.getNumeroCarteirinha();
             }
@@ -46,20 +43,23 @@ public class Clube {
     }
 
     public void cadastrarSocio(Socio socio) {
-        socios.add(socio);
+        socios.put(socio.getNumeroCarteirinha(), socio);
         ultimoNumeroCarteirinha = socio.getNumeroCarteirinha();
         salvarNoArquivo();
     }
 
     private void carregarDoArquivo() {
         JsonReader jsonReader = new JsonReader();
-        Type listType = new TypeToken<List<Socio>>(){}.getType();
+        Type listType = new TypeToken<List<Socio>>(){}.getType(); // Usar o tipo List<Socio>
 
         List<Socio> listaSocios = jsonReader.readFromFile(ARQUIVO_SOCIOS, listType);
+
+        // Converter a lista de socios em um mapa
+        socios = new HashMap<>();
         if (listaSocios != null) {
-            socios = listaSocios;
-        } else {
-            socios = new ArrayList<>();
+            for (Socio socio : listaSocios) {
+                socios.put(socio.getNumeroCarteirinha(), socio);
+            }
         }
     }
 
@@ -73,7 +73,7 @@ public class Clube {
             System.out.println("Não há registros de sócios.");
         } else {
             System.out.println("===== Lista de Sócios =====");
-            socios.forEach(System.out::println);
+            socios.values().forEach(System.out::println);
         }
     }
 
@@ -102,13 +102,11 @@ public class Clube {
     }
 
     public boolean atualizarRegistro(Socio socioAntigo, Socio socioAtualizado) {
-        for (int i = 0; i < socios.size(); i++) {
-            Socio socio = socios.get(i);
-            if (socio.getNumeroCarteirinha() == socioAntigo.getNumeroCarteirinha()) {
-                socios.set(i, socioAtualizado);
-                salvarNoArquivo();
-                return true;
-            }
+        Integer numeroCarteirinha = socioAntigo.getNumeroCarteirinha();
+        if (socios.containsKey(numeroCarteirinha)) {
+            socios.put(numeroCarteirinha, socioAtualizado);
+            salvarNoArquivo();
+            return true;
         }
         return false;
     }

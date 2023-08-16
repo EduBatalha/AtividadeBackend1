@@ -24,20 +24,23 @@ public class JsonWriter {
                 .create();
     }
 
-    public void writeToFile(String fileName, List<?> data) {
+    public void writeToFile(String fileName, Map<Integer, Socio> data) {
         try (FileWriter writer = new FileWriter(fileName)) {
             writer.write("["); // Abre a lista de registros
-            for (int i = 0; i < data.size(); i++) {
+            int i = 0;
+            for (Socio socio : data.values()) {
                 if (i > 0) {
                     writer.write(",");
                 }
-                gson.toJson(data.get(i), writer);
+                gson.toJson(socio, writer);
+                i++;
             }
             writer.write("]"); // Fecha a lista de registros
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     public void appendToJSONFile(String fileName, Map<String, Object> data) {
         File file = new File(fileName);

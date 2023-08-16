@@ -1,14 +1,13 @@
 package domain;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+
 import com.google.gson.reflect.TypeToken;
 
 import infrastructure.Espaco;
 import infrastructure.JsonReader;
 import infrastructure.JsonWriter;
+import infrastructure.Socio;
 
 public class GestaoEspacos {
     private List<Espaco> espacos;
@@ -53,6 +52,6 @@ public class GestaoEspacos {
     }
 
     public void saveEspacosToJson() {
-        jsonWriter.writeToFile("espacos.json", espacos); // Escreve os espaços no arquivo JSON
+        jsonWriter.writeToFile("espacos.json", (Map<Integer, Socio>) espacos); // Escreve os espaços no arquivo JSON
     }
 }
