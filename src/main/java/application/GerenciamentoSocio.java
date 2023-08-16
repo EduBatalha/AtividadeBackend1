@@ -132,7 +132,6 @@ public class GerenciamentoSocio {
         }
     }
 
-
     public Socio consultarPorCarteirinha(int numeroCarteirinha) {
         for (Socio socio : clube.getSocios()) {
             if (socio.getNumeroCarteirinha() == numeroCarteirinha) {
@@ -159,7 +158,6 @@ public class GerenciamentoSocio {
             return false;
         }
     }
-
 
     private void exibirMenuAtualizacao(Socio socio) {
         System.out.println("Escolha o que deseja atualizar:");
