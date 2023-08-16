@@ -1,13 +1,10 @@
 package domain;
 
 import java.util.*;
-
 import com.google.gson.reflect.TypeToken;
-
 import infrastructure.Espaco;
 import infrastructure.JsonReader;
 import infrastructure.JsonWriter;
-import infrastructure.Socio;
 
 public class GestaoEspacos {
     private List<Espaco> espacos;
@@ -15,22 +12,40 @@ public class GestaoEspacos {
     private JsonWriter jsonWriter;
     private JsonReader jsonReader;
 
+    private static final String JSON_FILENAME = "espacos.json";
+
     public GestaoEspacos() {
         espacos = new ArrayList<>();
         espacos.addAll(Espacos()); // Adicione os espaços iniciais
         scanner = new Scanner(System.in);
-        jsonReader = new JsonReader(); // Primeiro inicialize o jsonReader
+        jsonReader = new JsonReader();
         jsonWriter = new JsonWriter();
-        List<Espaco> espacosFromJson = jsonReader.readFromFile(JSON_FILENAME, new TypeToken<List<Espaco>>() {}.getType());
-        if (espacosFromJson != null) {
-            espacos.addAll(espacosFromJson);
-        }
+        loadEspacosFromJson();
     }
-
-    private static final String JSON_FILENAME = "espacos.json";
 
     public List<Espaco> getEspacos() {
         return espacos;
+    }
+
+    public void saveEspacosToJson() {
+        try {
+            jsonWriter.writeEspacosToFile(JSON_FILENAME, (List<Espaco>) espacos);
+            System.out.println("Espaços salvos com sucesso!");
+        } catch (Exception e) {
+            System.out.println("Erro ao salvar espaços: " + e.getMessage());
+        }
+    }
+
+    private void loadEspacosFromJson() {
+        try {
+            espacos = jsonReader.readFromFile(JSON_FILENAME, new TypeToken<List<Espaco>>() {}.getType());
+            if (espacos == null) {
+                System.out.println("O arquivo espacos.json não foi encontrado. Criando um novo arquivo...");
+                espacos = Espacos(); // Adicione espaços iniciais
+                saveEspacosToJson(); // Salve os espaços iniciais no arquivo
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     public List<Espaco> Espacos() {
@@ -49,9 +64,5 @@ public class GestaoEspacos {
                 new Espaco("Área para Churrasco", Espaco.Categoria.RECREACAO, 30),
                 new Espaco("Parque Infantil", Espaco.Categoria.RECREACAO, 50)
         );
-    }
-
-    public void saveEspacosToJson() {
-        jsonWriter.writeToFile("espacos.json", (Map<Integer, Socio>) espacos); // Escreve os espaços no arquivo JSON
     }
 }

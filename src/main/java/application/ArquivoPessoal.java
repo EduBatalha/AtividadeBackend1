@@ -16,11 +16,13 @@ public class ArquivoPessoal {
     private JsonWriter jsonWriter;
     private JsonReader jsonReader;
     private GestaoEspacos gestaoEspacos;
+    private Clube clube;
     private static final String JSON_FILENAME = "registros.json";
     private Map<Socio, Map<Espaco, Map<LocalDateTime, Integer>>> historicoUsoPorSocio;
 
     public ArquivoPessoal() {
         this.gestaoEspacos = gestaoEspacos;
+        this.clube = clube;
         jsonWriter = new JsonWriter();
         jsonReader = new JsonReader();
         historicoUsoPorSocio = new HashMap<>();
@@ -160,26 +162,21 @@ public class ArquivoPessoal {
     }
 
     private void registrarSaida(int numeroCarteirinha) {
-        Type type = new TypeToken<List<Map<String, Object>>>() {}.getType();
-        List<Map<String, Object>> registrosExistentes = jsonReader.readFromFile(JSON_FILENAME, type);
+        List<Map<String, Object>> registrosExistentes = jsonReader.readFromFile(JSON_FILENAME, new TypeToken<List<Map<String, Object>>>() {}.getType());
 
         if (registrosExistentes != null) {
-            boolean foundMatchingEntry = false;
+            Optional<Map<String, Object>> matchingEntry = registrosExistentes.stream()
+                    .filter(registro -> {
+                        int registroNumeroCarteirinha = ((Double) registro.get("numeroCarteirinha")).intValue();
+                        return registroNumeroCarteirinha == numeroCarteirinha && registro.get("horarioSaida") == null;
+                    })
+                    .findFirst();
 
-            for (Map<String, Object> registro : registrosExistentes) {
-                int registroNumeroCarteirinha = ((Double) registro.get("numeroCarteirinha")).intValue();
-                if (registroNumeroCarteirinha == numeroCarteirinha &&
-                        registro.get("horarioSaida") == null) {
-                    // Atualiza o horário de saída
-                    registro.put("horarioSaida", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS")));
+            if (matchingEntry.isPresent()) {
+                Map<String, Object> registro = matchingEntry.get();
+                registro.put("horarioSaida", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS")));
 
-                    foundMatchingEntry = true;
-                    break;
-                }
-            }
-
-            if (foundMatchingEntry) {
-                jsonWriter.writeToFile(JSON_FILENAME, (Map<Integer, Socio>) registrosExistentes);
+                jsonWriter.writeListToFile(JSON_FILENAME, registrosExistentes);
                 System.out.println("Saída registrada com sucesso!");
             } else {
                 System.out.println("Registro de entrada correspondente não encontrado para registrar a saída.");

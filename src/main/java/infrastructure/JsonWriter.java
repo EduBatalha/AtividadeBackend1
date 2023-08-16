@@ -41,6 +41,22 @@ public class JsonWriter {
         }
     }
 
+    public void writeEspacosToFile(String fileName, List<Espaco> data) {
+        try (FileWriter writer = new FileWriter(fileName)) {
+            writer.write("[");
+            int i = 0;
+            for (Espaco espaco : data) {
+                if (i > 0) {
+                    writer.write(",");
+                }
+                gson.toJson(espaco, writer);
+                i++;
+            }
+            writer.write("]");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void appendToJSONFile(String fileName, Map<String, Object> data) {
         File file = new File(fileName);
@@ -72,6 +88,13 @@ public class JsonWriter {
             if (fileExists) {
                 writer.write("]"); // Fecha o array de registros
             } else {writer.write("]");}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void writeListToFile(String fileName, List<Map<String, Object>> data) {
+        try (FileWriter writer = new FileWriter(fileName)) {
+            gson.toJson(data, writer);
         } catch (IOException e) {
             e.printStackTrace();
         }

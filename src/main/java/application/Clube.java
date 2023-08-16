@@ -1,5 +1,6 @@
 package application;
 
+import infrastructure.Espaco;
 import infrastructure.JsonReader;
 import infrastructure.JsonWriter;
 import domain.*;
@@ -64,8 +65,13 @@ public class Clube {
     }
 
     private void salvarNoArquivo() {
+        Map<Integer, Socio> socioMap = new HashMap<>();
+        for (Socio socio : socios.values()) {
+            socioMap.put(socio.getNumeroCarteirinha(), socio);
+        }
+
         JsonWriter jsonWriter = new JsonWriter();
-        jsonWriter.writeToFile(ARQUIVO_SOCIOS, socios);
+        jsonWriter.writeToFile(ARQUIVO_SOCIOS, (Map<Integer, Socio>) socioMap);
     }
 
     public void listarSocios() {
