@@ -73,14 +73,8 @@ public class Clube {
             System.out.println("Não há registros de sócios.");
         } else {
             System.out.println("===== Lista de Sócios =====");
-            for (Socio socio : socios) {
-                System.out.println(socio);
-            }
+            socios.forEach(System.out::println);
         }
-    }
-
-    public Financeiro getRelatorios() {
-        return financeiro;
     }
 
     public GerenciamentoSocio getGerenciamentoSocio() {

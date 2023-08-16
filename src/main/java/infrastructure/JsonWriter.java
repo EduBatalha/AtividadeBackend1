@@ -68,7 +68,7 @@ public class JsonWriter {
 
             if (fileExists) {
                 writer.write("]"); // Fecha o array de registros
-            }
+            } else {writer.write("]");}
         } catch (IOException e) {
             e.printStackTrace();
         }
