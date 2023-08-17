@@ -1,10 +1,8 @@
 package infrastructure;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
+
 
 public class Socio {
     private int numeroCarteirinha;
@@ -19,7 +17,6 @@ public class Socio {
         this.nome = nome;
         this.documento = documento;
     }
-
 
     public int getNumeroCarteirinha() {
         return numeroCarteirinha;
@@ -48,10 +45,10 @@ public class Socio {
     @Override
     public String toString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String dataAssociacaoFormatada = dataAssociacao.format(formatter);
-        return "Número da carteirinha: " + numeroCarteirinha +
+        String dataAssociacaoFormatada = dataAssociacao != null ? dataAssociacao.format(formatter) : "Data de associação não definida";
+        return "Nome: " + nome  +
+                ", Número da carteirinha: " + numeroCarteirinha +
                 ", Data de associação: " + dataAssociacaoFormatada +
-                ", Nome: " + nome +
                 ", Documento: " + documento;
     }
 }

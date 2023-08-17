@@ -1,11 +1,8 @@
 package domain;
 
 import com.google.gson.reflect.TypeToken;
-import infrastructure.Espaco;
-import infrastructure.JsonReader;
-import application.ArquivoPessoal;
-import application.Clube;
-import infrastructure.Socio;
+import infrastructure.*;
+import application.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -17,13 +14,14 @@ import java.util.stream.Collectors;
 public class Financeiro {
     private ArquivoPessoal arquivoPessoal;
     private GestaoEspacos gestaoEspacos;
-    private Clube clube;
+    private SocioNegocio socioNegocio;
     private JsonReader jsonReader;
 
-    public Financeiro(ArquivoPessoal arquivoPessoal, GestaoEspacos gestaoEspacos, Clube clube) {
+
+    public Financeiro(ArquivoPessoal arquivoPessoal, GestaoEspacos gestaoEspacos, SocioNegocio socioNegocio) {
         this.arquivoPessoal = arquivoPessoal;
         this.gestaoEspacos = gestaoEspacos;
-        this.clube = clube;
+        this.socioNegocio = socioNegocio;
         this.jsonReader = new JsonReader();
     }
 
@@ -53,7 +51,7 @@ public class Financeiro {
     }
 
     private Socio obterSocioPorNome(String nomeSocio) {
-        return clube.getSocios().values().stream()  // Obtém os valores (Socios) do mapa
+        return socioNegocio.getSocios().values().stream()  // Obtém os valores (Socios) do mapa
                 .filter(socio -> socio.getNome().equals(nomeSocio))
                 .findFirst()
                 .orElse(null);
@@ -147,11 +145,10 @@ public class Financeiro {
 
     public void gerarRelatorioTempoUsoPorSocio() {
         System.out.println("===== Relatório de Tempo de Uso por Sócio =====");
-        List<Socio> socios = (List<Socio>) clube.getSocios();
 
         Map<Espaco.Categoria, Map<Socio, Long>> tempoUsoPorCategoria = calcularTempoUsoPorCategoria();
 
-        for (Socio socio : socios) {
+        for (Socio socio : socioNegocio.getSocios().values()) {
             System.out.println("Sócio: " + socio.getNome());
 
             for (Map.Entry<Espaco.Categoria, Map<Socio, Long>> entry : tempoUsoPorCategoria.entrySet()) {

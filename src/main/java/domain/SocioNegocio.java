@@ -1,17 +1,66 @@
-package application;
+package domain;
 
-import infrastructure.Socio;
+import com.google.gson.reflect.TypeToken;
+import infrastructure.*;
+import application.*;
 
+
+import java.io.File;
 import java.time.LocalDate;
-import java.util.Scanner;
+import java.time.LocalDateTime;
+import java.util.*;
 
-public class GerenciamentoSocio {
-    private Clube clube;
+public class SocioNegocio {
+
+    private GerenciamentoSocioUI socioUI;
     private Scanner scanner;
+    private Socio socio;
+    private SocioNegocio socioNegocio;
+    private JsonReader jsonReader;
+    private JsonWriter jsonWriter;
+    private Map<Integer, Socio> socios;
+    private Map<Socio, Map<Espaco, Map<LocalDateTime, Integer>>> historicoUsoPorSocio;
+    private static final String JSON_FILENAME = "socios.json";
 
-    public GerenciamentoSocio(Clube clube, Scanner scanner) {
-        this.clube = clube;
+    public SocioNegocio(Scanner scanner, GerenciamentoSocioUI socioUI) {
         this.scanner = scanner;
+        this.socioUI = socioUI;
+        this.historicoUsoPorSocio = new HashMap<>();
+        this.socios = new HashMap<>();
+        this.jsonReader = new JsonReader();
+        this.jsonWriter = new JsonWriter();
+
+        if (!jsonReader.fileExists(JSON_FILENAME)) {
+            // Se o arquivo não existir, cria um arquivo vazio
+            File file = new File(JSON_FILENAME);
+            try {
+                file.createNewFile();
+            } catch (Exception e) {
+                System.out.println("Erro ao criar o arquivo socios.json: " + e.getMessage());
+            }
+        }
+        if (jsonReader.fileExists(JSON_FILENAME)) {
+            carregarSociosDeArquivoJSON(JSON_FILENAME);
+        }
+    }
+
+    public void salvarMudancasEmArquivo() {
+        jsonWriter.writeToFile(JSON_FILENAME, socios);
+    }
+
+
+    public void carregarSociosDeArquivoJSON(String filename) {
+        List<Socio> sociosLidos = jsonReader.readFromFile(filename, new TypeToken<List<Socio>>() {}.getType());
+
+        if (sociosLidos != null) {
+            for (Socio socio : sociosLidos) {
+                socios.put(socio.getNumeroCarteirinha(), socio);
+            }
+        }
+    }
+
+    public Map<Integer, Socio> getSocios() {
+        return socios;
     }
 
     public void cadastrarNovoSocio() {
@@ -19,7 +68,7 @@ public class GerenciamentoSocio {
 
         try {
             // Incrementar o número da carteirinha antes de criar o novo sócio
-            int numeroCarteirinha = clube.getUltimoNumeroCarteirinha() + 1;
+            int numeroCarteirinha = getUltimoNumeroCarteirinha() + 1;
 
             System.out.print("Nome: ");
             String nome = scanner.nextLine().trim();
@@ -36,17 +85,17 @@ public class GerenciamentoSocio {
 
             // Escolhendo o tipo do documento
             System.out.println("Escolha o tipo de documento: ");
-            for (Clube.TipoDocumento tipo : Clube.TipoDocumento.values()) {
+            for (SocioNegocio.TipoDocumento tipo : SocioNegocio.TipoDocumento.values()) {
                 System.out.println(tipo.ordinal() + ". " + tipo.getDescricao());
             }
             int escolha = scanner.nextInt();
             scanner.nextLine();
 
             String documento;
-            if (escolha == Clube.TipoDocumento.RG.ordinal()) {
-                documento = formatarDocumento(scanner, Clube.TipoDocumento.RG.getMascara());
-            } else if (escolha == Clube.TipoDocumento.CPF.ordinal()) {
-                documento = formatarDocumento(scanner, Clube.TipoDocumento.CPF.getMascara());
+            if (escolha == SocioNegocio.TipoDocumento.RG.ordinal()) {
+                documento = formatarDocumento(scanner, SocioNegocio.TipoDocumento.RG.getMascara());
+            } else if (escolha == SocioNegocio.TipoDocumento.CPF.ordinal()) {
+                documento = formatarDocumento(scanner, SocioNegocio.TipoDocumento.CPF.getMascara());
             } else {
                 System.out.println("Erro: Escolha inválida de tipo de documento.");
                 return;
@@ -56,8 +105,20 @@ public class GerenciamentoSocio {
                 return; // O método formatarDocumento já exibiu os erros
             }
 
+            // Verificar se o documento já está cadastrado
+            for (Socio existingSocio : socios.values()) {
+                if (existingSocio.getDocumento().equals(documento)) {
+                    System.out.println("Erro: Este documento já está cadastrado.");
+                    return;
+                }
+            }
+
             Socio novoSocio = new Socio(numeroCarteirinha, LocalDate.now(), nome, documento);
-            clube.cadastrarSocio(novoSocio);
+            socios.put(numeroCarteirinha, novoSocio);  // Adicionar o novo sócio ao mapa
+
+            // Salvar as mudanças no arquivo JSON
+            salvarMudancasEmArquivo();
+
             System.out.println("Cadastro efetuado com sucesso!");
         } catch (NumberFormatException e) {
             System.out.println("Erro ao ler entrada numérica: " + e.getMessage());
@@ -66,7 +127,7 @@ public class GerenciamentoSocio {
         }
     }
 
-    private String formatarDocumento(Scanner scanner, String mascara) {
+    public String formatarDocumento(Scanner scanner, String mascara) {
         System.out.print("Documento (" + mascara + "): ");
         String input = scanner.nextLine().trim();
 
@@ -94,20 +155,6 @@ public class GerenciamentoSocio {
         return documentoFormatado.toString();
     }
 
-    public void atualizarRegistro() {
-        System.out.println("===== Atualizar Registro =====");
-        System.out.print("Digite o número da carteirinha do sócio a ser atualizado: ");
-        int numeroCarteirinhaAtualizar = scanner.nextInt();
-        scanner.nextLine();
-
-        Socio socioAtualizar = clube.getSocios().get(numeroCarteirinhaAtualizar);
-
-        if (socioAtualizar == null) {
-            System.out.println("Sócio não encontrado.");
-        } else {
-            exibirMenuAtualizacao(socioAtualizar);
-        }
-    }
 
     public void consultarSocio() {
         System.out.println("===== Consultar Sócio =====");
@@ -126,9 +173,33 @@ public class GerenciamentoSocio {
     }
 
     public Socio consultarPorCarteirinha(int numeroCarteirinha) {
-        return clube.getSocios().get(numeroCarteirinha);
+        return socios.get(numeroCarteirinha);
     }
 
+    public void listarSocios() {
+        if (socios.isEmpty()) {
+            System.out.println("Não há registros de sócios.");
+        } else {
+            System.out.println("===== Lista de Sócios =====");
+            socios.values().forEach(socio -> {
+                System.out.println("Número da carteirinha: " + socio.getNumeroCarteirinha());
+                System.out.println("Nome: " + socio.getNome());
+                System.out.println("Data de Associação: " + socio.getDataAssociacao());
+                System.out.println("Documento: " + socio.getDocumento());
+                System.out.println();
+            });
+        }
+    }
+
+    private int getUltimoNumeroCarteirinha() {
+        int ultimoNumeroCarteirinha = 0;
+        for (Socio socio : socios.values()) {
+            if (socio.getNumeroCarteirinha() > ultimoNumeroCarteirinha) {
+                ultimoNumeroCarteirinha = socio.getNumeroCarteirinha();
+            }
+        }
+        return ultimoNumeroCarteirinha;
+    }
 
     public boolean excluirRegistro() {
         System.out.println("===== Excluir Registro =====");
@@ -139,8 +210,9 @@ public class GerenciamentoSocio {
         Socio socioExcluir = consultarPorCarteirinha(numeroCarteirinhaExcluir);
 
         if (socioExcluir != null) {
-            clube.excluirRegistro(socioExcluir.getNumeroCarteirinha());
+            socioNegocio.excluirRegistro();
             System.out.println("Cadastro excluído com sucesso!");
+            salvarMudancasEmArquivo();
             return true;
         } else {
             System.out.println("Cadastro não encontrado ou falha ao excluir.");
@@ -148,34 +220,22 @@ public class GerenciamentoSocio {
         }
     }
 
-    private void exibirMenuAtualizacao(Socio socio) {
-        System.out.println("Escolha o que deseja atualizar:");
-        System.out.println("1 - Nome");
-        System.out.println("2 - Documento");
-        System.out.println("3 - Nome e Documento");
-        System.out.print("Opção: ");
-        int opcao = scanner.nextInt();
+    public void atualizarRegistro() {
+        System.out.println("===== Atualizar Registro =====");
+        System.out.print("Digite o número da carteirinha do sócio a ser atualizado: ");
+        int numeroCarteirinhaAtualizar = scanner.nextInt();
         scanner.nextLine();
 
-        Socio socioAtualizado = new Socio(socio.getNumeroCarteirinha(), socio.getDataAssociacao(), socio.getNome(), socio.getDocumento());
+        Socio socioAtualizar = consultarPorCarteirinha(numeroCarteirinhaAtualizar);
 
-        switch (opcao) {
-            case 1:
-                atualizarNome(socioAtualizado);
-                break;
-            case 2:
-                atualizarDocumento(socioAtualizado);
-                break;
-            case 3:
-                atualizarNome(socioAtualizado);
-                atualizarDocumento(socioAtualizado);
-                break;
-            default:
-                System.out.println("Opção inválida.");
+        if (socioAtualizar == null) {
+            System.out.println("Sócio não encontrado.");
+        } else {
+            socioUI.exibirMenuAtualizacao(socioAtualizar, this); // Passa a referência da classe SocioNegocio
         }
     }
 
-    private void atualizarNome(Socio socio) {
+    public void atualizarNome(Socio socio) {
         boolean nomeAtualizado = false;
 
         while (!nomeAtualizado) {
@@ -185,13 +245,14 @@ public class GerenciamentoSocio {
             if (novoNome.matches("^[A-Za-zÀ-ÖØ-öø-ÿ ]+$")) {
                 socio.setNome(novoNome);
                 nomeAtualizado = true;
+                salvarMudancasEmArquivo();
             } else {
                 System.out.println("Erro: Utilize apenas letras e espaços no nome.");
             }
         }
     }
 
-    private void atualizarDocumento(Socio socio) {
+    public void atualizarDocumento(Socio socio) {
         boolean documentoAtualizado = false;
         while (!documentoAtualizado) {
             System.out.println("Escolha o tipo de documento:");
@@ -208,9 +269,9 @@ public class GerenciamentoSocio {
 
             String novoDocumento = null;
             if (escolhaDocumento == 1) {
-                novoDocumento = formatarDocumento(scanner, Clube.TipoDocumento.RG.getMascara());
+                novoDocumento = formatarDocumento(scanner, TipoDocumento.RG.getMascara());
             } else if (escolhaDocumento == 2) {
-                novoDocumento = formatarDocumento(scanner, Clube.TipoDocumento.CPF.getMascara());
+                novoDocumento = formatarDocumento(scanner, TipoDocumento.CPF.getMascara());
             } else {
                 System.out.println("Opção inválida.");
                 continue;
@@ -219,9 +280,31 @@ public class GerenciamentoSocio {
             if (novoDocumento != null) {
                 socio.setDocumento(novoDocumento);
                 documentoAtualizado = true;
+                salvarMudancasEmArquivo();
             } else {
                 System.out.println("Erro ao atualizar documento. Verifique a formatação e tente novamente.");
             }
+        }
+    }
+
+    public enum TipoDocumento {
+        RG("RG", "##.###.###-#"),
+        CPF("CPF", "###.###.###-##");
+
+        private final String descricao;
+        private final String mascara;
+
+        TipoDocumento(String descricao, String mascara) {
+            this.descricao = descricao;
+            this.mascara = mascara;
+        }
+
+        public String getDescricao() {
+            return descricao;
+        }
+
+        public String getMascara() {
+            return mascara;
         }
     }
 }

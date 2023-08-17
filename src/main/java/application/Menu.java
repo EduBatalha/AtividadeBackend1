@@ -1,27 +1,29 @@
 package application;
 
 import infrastructure.Espaco;
-import domain.Financeiro;
-import domain.GestaoEspacos;
+import infrastructure.Socio;
+import domain.*;
+
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Menu {
     private Scanner scanner;
-    private Clube clube;
-    private GerenciamentoSocio gerenciamentoSocio;
+    private SocioNegocio socioNegocio;
+    private GerenciamentoSocioUI socioUI;
     private GestaoEspacos gestaoEspacos;
     private Financeiro financeiro;
     private ArquivoPessoal arquivoPessoal;
+    private Socio socio;
 
     public Menu() {
         scanner = new Scanner(System.in);
-        clube = new Clube(scanner);
-        arquivoPessoal = new ArquivoPessoal();
-        gestaoEspacos = clube.getGestaoEspacos();
-        financeiro = new Financeiro(arquivoPessoal, gestaoEspacos, clube);
-        gerenciamentoSocio = clube.getGerenciamentoSocio();
+        arquivoPessoal = new ArquivoPessoal(gestaoEspacos, socioNegocio);
+        gestaoEspacos = new GestaoEspacos();
+        financeiro = new Financeiro(arquivoPessoal, gestaoEspacos, socioNegocio);
+        socioUI = new GerenciamentoSocioUI(scanner, socioNegocio); // Passar a referência correta
+        socioNegocio = new domain.SocioNegocio(scanner, socioUI); // Passar a referência correta
     }
 
     public void executar() {
@@ -45,13 +47,13 @@ public class Menu {
                 scanner.nextLine();
 
                 switch (escolha) {
-                    case 1 -> gerenciamentoSocio.cadastrarNovoSocio();
-                    case 2 -> gerenciamentoSocio.consultarSocio();
-                    case 3 -> gerenciamentoSocio.atualizarRegistro();
-                    case 4 -> gerenciamentoSocio.excluirRegistro();
-                    case 5 -> clube.listarSocios();
+                    case 1 -> socioNegocio.cadastrarNovoSocio();
+                    case 2 -> socioNegocio.consultarSocio();
+                    case 3 -> socioNegocio.atualizarRegistro();
+                    case 4 -> socioNegocio.excluirRegistro();
+                    case 5 -> socioNegocio.listarSocios();
                     case 6 -> exibirMenuRelatorios(scanner);
-                    case 7 -> clube.getArquivoPessoal().exibirMenuRegistrarEntradaSaida(scanner, clube);
+                    case 7 -> arquivoPessoal.exibirMenuRegistrarEntradaSaida(scanner, socioNegocio);
                     case 8 -> menuEspaco();
                     case 0 -> sair= true;
                     default -> System.out.println("Opção inválida.");
@@ -154,5 +156,4 @@ public class Menu {
 
         } while (escolha != 5);
     }
-
 }

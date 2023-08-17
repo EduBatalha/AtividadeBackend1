@@ -1,11 +1,9 @@
 package application;
 
 import com.google.gson.reflect.TypeToken;
-import infrastructure.JsonWriter;
-import infrastructure.JsonReader;
-import infrastructure.Espaco;
-import domain.GestaoEspacos;
-import infrastructure.Socio;
+import infrastructure.*;
+import domain.*;
+
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
@@ -16,25 +14,25 @@ public class ArquivoPessoal {
     private JsonWriter jsonWriter;
     private JsonReader jsonReader;
     private GestaoEspacos gestaoEspacos;
-    private Clube clube;
+    private domain.SocioNegocio socioNegocio;
     private static final String JSON_FILENAME = "registros.json";
     private Map<Socio, Map<Espaco, Map<LocalDateTime, Integer>>> historicoUsoPorSocio;
 
-    public ArquivoPessoal() {
+    public ArquivoPessoal(GestaoEspacos gestaoEspacos, domain.SocioNegocio socioNegocio) {
         this.gestaoEspacos = gestaoEspacos;
-        this.clube = clube;
+        this.socioNegocio = socioNegocio;
         jsonWriter = new JsonWriter();
         jsonReader = new JsonReader();
         historicoUsoPorSocio = new HashMap<>();
     }
 
-    public void exibirMenuRegistrarEntradaSaida(Scanner scanner, Clube clube) {
+    public void exibirMenuRegistrarEntradaSaida(Scanner scanner, SocioNegocio socioNegocio) {
         System.out.println("===== Registrar Entrada e Saída de Sócio em Espaço =====");
         System.out.print("Digite o número da carteirinha do sócio: ");
         int numeroCarteirinha = scanner.nextInt();
         scanner.nextLine();
 
-        Socio socio = clube.getGerenciamentoSocio().consultarPorCarteirinha(numeroCarteirinha);
+        Socio socio = socioNegocio.consultarPorCarteirinha(numeroCarteirinha);
 
         if (socio != null) {
             System.out.println("Escolha uma opção:");
@@ -46,7 +44,7 @@ public class ArquivoPessoal {
 
             switch (opcao) {
                 case 1 -> {
-                    Espaco espaco = selecionarEspaco(scanner, clube.getGestaoEspacos());
+                    Espaco espaco = selecionarEspaco(scanner, gestaoEspacos.getEspacos());
                     if (espaco != null) {
                         registrarEntradaSaida(socio, espaco, true); // true representa entrada
                     }
@@ -60,27 +58,23 @@ public class ArquivoPessoal {
         }
     }
 
-    private Espaco selecionarEspaco(Scanner scanner, GestaoEspacos gestaoEspacos)
-    {
-        System.out.println("===== Espaços Disponíveis =====");
-
-        List<Espaco> espacos = gestaoEspacos.getEspacos();
+    private Espaco selecionarEspaco(Scanner scanner, List<Espaco> espacos) {
+        System.out.println("Escolha um espaço:");
         for (int i = 0; i < espacos.size(); i++) {
-            Espaco espaco = espacos.get(i);
-            System.out.println(i + 1 + " - " + espaco.getNome() + " (" + espaco.getCategoria() + ")");
+            System.out.println(i + 1 + ". " + espacos.get(i).getNome());
         }
 
-        System.out.print("Digite o número do espaço desejado: ");
-        int escolhaEspaco = scanner.nextInt();
-        scanner.nextLine(); // Consumir a quebra de linha
+        int escolha = scanner.nextInt();
+        scanner.nextLine();
 
-        if (escolhaEspaco >= 1 && escolhaEspaco <= espacos.size()) {
-            return espacos.get(escolhaEspaco - 1);
-        } else {
-            System.out.println("Espaço inválido.");
+        if (escolha < 1 || escolha > espacos.size()) {
+            System.out.println("Escolha inválida.");
             return null;
         }
+
+        return espacos.get(escolha - 1);
     }
+
 
     public void lerRegistrosPorNumeroCarteirinha(int numeroCarteirinha) {
         Type type = new TypeToken<List<Map<String, Object>>>() {}.getType();
