@@ -23,18 +23,13 @@ public class GerenciamentoSocioUI {
         scanner.nextLine();
 
         switch (opcao) {
-            case 1:
-                socioNegocio.atualizarNome(socio);
-                break;
-            case 2:
-                socioNegocio.atualizarDocumento(socio);
-                break;
-            case 3:
+            case 1 -> socioNegocio.atualizarNome(socio);
+            case 2 -> socioNegocio.atualizarDocumento(socio);
+            case 3 -> {
                 socioNegocio.atualizarNome(socio);
                 socioNegocio.atualizarDocumento(socio);
-                break;
-            default:
-                System.out.println("Opção inválida.");
+            }
+            default -> System.out.println("Opção inválida.");
         }
     }
 }

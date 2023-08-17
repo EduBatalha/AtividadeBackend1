@@ -21,9 +21,9 @@ public class ArquivoPessoal {
     public ArquivoPessoal(GestaoEspacos gestaoEspacos, domain.SocioNegocio socioNegocio) {
         this.gestaoEspacos = gestaoEspacos;
         this.socioNegocio = socioNegocio;
+        historicoUsoPorSocio = new HashMap<>();
         jsonWriter = new JsonWriter();
         jsonReader = new JsonReader();
-        historicoUsoPorSocio = new HashMap<>();
     }
 
     public void exibirMenuRegistrarEntradaSaida(Scanner scanner, SocioNegocio socioNegocio) {
@@ -74,7 +74,6 @@ public class ArquivoPessoal {
 
         return espacos.get(escolha - 1);
     }
-
 
     public void lerRegistrosPorNumeroCarteirinha(int numeroCarteirinha) {
         Type type = new TypeToken<List<Map<String, Object>>>() {}.getType();

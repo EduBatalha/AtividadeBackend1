@@ -2,6 +2,7 @@ package infrastructure;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Espaco {
@@ -24,16 +25,13 @@ public class Espaco {
     }
 
     public void registrarUso(Socio socio, LocalDateTime horarioEntrada, LocalDateTime horarioSaida) {
-        if (!registroUsoPorSocio.containsKey(socio)) {
-            registroUsoPorSocio.put(socio, new HashMap<>());
+        Map<LocalDateTime, Integer> registros = registroUsoPorSocio.computeIfAbsent(socio, k -> new LinkedHashMap<>());
+
+        registros.put(horarioEntrada, 1); // Registro de entrada
+        if (horarioSaida != null) {
+            registros.put(horarioSaida, -1); // Registro de saída
         }
-
-        Map<LocalDateTime, Integer> registrosSocio = registroUsoPorSocio.get(socio);
-
-        registrosSocio.put(horarioEntrada, 1); // Entrada é representada por 1
-        registrosSocio.put(horarioSaida, 0);   // Saída é representada por 0
     }
-
     public String getNome() {
         return nome;
     }

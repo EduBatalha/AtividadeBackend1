@@ -4,7 +4,6 @@ import infrastructure.Espaco;
 import infrastructure.Socio;
 import domain.*;
 
-
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -19,11 +18,11 @@ public class Menu {
 
     public Menu() {
         scanner = new Scanner(System.in);
-        arquivoPessoal = new ArquivoPessoal(gestaoEspacos, socioNegocio);
         gestaoEspacos = new GestaoEspacos();
+        socioUI = new GerenciamentoSocioUI(scanner, socioNegocio);
+        socioNegocio = new SocioNegocio(scanner, socioUI);
+        arquivoPessoal = new ArquivoPessoal(gestaoEspacos, socioNegocio);
         financeiro = new Financeiro(arquivoPessoal, gestaoEspacos, socioNegocio);
-        socioUI = new GerenciamentoSocioUI(scanner, socioNegocio); // Passar a referência correta
-        socioNegocio = new domain.SocioNegocio(scanner, socioUI); // Passar a referência correta
     }
 
     public void executar() {

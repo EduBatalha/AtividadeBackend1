@@ -48,7 +48,6 @@ public class SocioNegocio {
         jsonWriter.writeToFile(JSON_FILENAME, socios);
     }
 
-
     public void carregarSociosDeArquivoJSON(String filename) {
         List<Socio> sociosLidos = jsonReader.readFromFile(filename, new TypeToken<List<Socio>>() {}.getType());
 
@@ -210,9 +209,9 @@ public class SocioNegocio {
         Socio socioExcluir = consultarPorCarteirinha(numeroCarteirinhaExcluir);
 
         if (socioExcluir != null) {
-            socioNegocio.excluirRegistro();
-            System.out.println("Cadastro excluído com sucesso!");
+            socios.remove(numeroCarteirinhaExcluir); // Remove o sócio da lista
             salvarMudancasEmArquivo();
+            System.out.println("Cadastro excluído com sucesso!");
             return true;
         } else {
             System.out.println("Cadastro não encontrado ou falha ao excluir.");
